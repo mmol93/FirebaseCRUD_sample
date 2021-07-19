@@ -1,0 +1,2 @@
+rootProject.name = "FirebaseCURD_sample"
+include ':app'
