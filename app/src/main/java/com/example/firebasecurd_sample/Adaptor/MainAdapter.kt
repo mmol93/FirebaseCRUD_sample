@@ -11,7 +11,7 @@ import com.example.firebasecurd_sample.databinding.RecyclerMainItemBinding
 
 class MainAdapter(
     private val userList : ArrayList<User>
-    ) : RecyclerView.Adapter<MainAdapter.ViewHolder>(){
+) : RecyclerView.Adapter<MainAdapter.ViewHolder>(){
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemView = LayoutInflater.from(parent.context).
         inflate(R.layout.recycler_main_item, parent, false)

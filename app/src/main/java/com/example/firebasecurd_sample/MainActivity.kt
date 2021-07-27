@@ -13,38 +13,55 @@ class MainActivity : AppCompatActivity() {
     private lateinit var databaseRef : DatabaseReference
     private lateinit var userList : ArrayList<User>
     private lateinit var binder : ActivityMainBinding
+    private lateinit var keyList : MutableList<String>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binder = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binder.root)
+        keyList = mutableListOf<String>()
 
         binder.mainRecycler.layoutManager = LinearLayoutManager(this)
-        binder.mainRecycler.setHasFixedSize(true)
 
         userList = arrayListOf<User>()
-        getFirebaseData()
-        Log.d("test", "currentFocus: ${this.currentFocus}")
-    }
+        databaseRef = FirebaseDatabase.getInstance().getReference("students")
 
-    fun getFirebaseData(){
-        // path: Realtime Database에서 (1번 사용할 경우) 최상위 항목의 이름
-        databaseRef = FirebaseDatabase.getInstance().getReference("teacher")
-        // addValueEventListener: 데이터베이스의 값이 달라진 경우 해당 함수 호출
+        getFirebaseKeys()
+        getFirebaseData(keyList)
+    }
+    fun getFirebaseKeys(){
         databaseRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()){
-                    // User 클래스에 있는 데이터 변수 = 키
-                    // 즉, getValue를 이용하여 Hash 형태의 데이터를 가져와서 리스트에 넣음
-                    val data = snapshot.getValue(User::class.java)
-                    userList.add(data!!)
-                    Log.d("test", "test: $data")
+                    keyList.clear()
+                    // "students 하위에 있는 키만 가져온다"
+                    snapshot.children.forEach {
+                        keyList.add(it.key.toString())
+                    }
+                    Log.d("MainActivity", "keys: $keyList")
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.d("MainActivity", "getFirebaseKeys: canceled")
+            }
+        })
+    }
 
+    fun getFirebaseData(keyList : MutableList<String>){
+        databaseRef.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()){
+                    userList.clear()
+                    // 각각의 키를 이용하여 각 항목에 접근하고 데이터를 가져온다
+                    keyList.forEach {
+                        val data = snapshot.child(it).getValue(User::class.java)
+                        userList.add(data!!)
+                    }
+                    Log.d("MainActivity", "userList: $userList")
                     binder.mainRecycler.adapter = MainAdapter(userList)
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                Log.d("MainActivity", "getFirebaseData: canceled")
             }
         })
     }
