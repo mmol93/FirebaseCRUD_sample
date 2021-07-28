@@ -39,39 +39,51 @@ class MainActivity : AppCompatActivity() {
         val item = menu!!.findItem(R.id.search)
 
         val searchView = item.actionView as SearchView
-        searchView.queryHint = "enter name"
+        searchView.queryHint = "Search Student's name"
 
         val searchListener = object : SearchView.OnQueryTextListener{
+            // 서치뷰에서 텍스트를 입력하고 확인을 눌렀을 때
             override fun onQueryTextSubmit(query: String?): Boolean {
-                TODO("Not yet implemented")
+                searchName(query)
+                searchView.clearFocus()
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                TODO("Not yet implemented")
+                return true
             }
         }
 
+        // 서치뷰에 리스너 등록
+        searchView.setOnQueryTextListener(searchListener)
+        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
 
-        return super.onCreateOptionsMenu(menu)
+        }
+
+        return true
     }
 
-    // ActionBar에서 search를 했을 경우 새롭게 찾은 결과를 보여줄 recyclerView를 재정의하는 함수
-    fun searchName(name : String){
-        getFirebaseKeys()
-        databaseRef.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()){
-                    userList.clear()
-                    keyList.forEach {
-                        val data = snapshot.child(it)
+    // 서치뷰에서 사용될 query 형태로 검색
+    fun searchName(name : String?){
+        if (name != null){
+            userList.clear()
+            databaseRef.orderByChild("name").startAt(name).endAt("$name~")
+                .addValueEventListener(object : ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        // 하위 값을 하나씩 모두 가져온다
+                        for (i in snapshot.children){
+                            Log.d("MainActivity", "값: $i")
+                            val data = i.getValue(User::class.java)
+                            userList.add(data!!)
+                        }
+                        binder.mainRecycler.adapter = MainAdapter(userList)
                     }
-                }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
+                    override fun onCancelled(error: DatabaseError) {
+                        TODO("Not yet implemented")
+                    }
+                })
+        }
     }
 
     // 한 단계 하위 데이터의 모든 key 값을 keyList라는 리스트 변수에 저장하는 함수
@@ -84,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                     snapshot.children.forEach {
                         keyList.add(it.key.toString())
                     }
-                    Log.d("MainActivity", "keys: $keyList")
+//                    Log.d("MainActivity", "keys: $keyList")
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -104,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                         val data = snapshot.child(it).getValue(User::class.java)
                         userList.add(data!!)
                     }
-                    Log.d("MainActivity", "userList: $userList")
+//                    Log.d("MainActivity", "userList: $userList")
                     binder.mainRecycler.adapter = MainAdapter(userList)
                 }
             }
