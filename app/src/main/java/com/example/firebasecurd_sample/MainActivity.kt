@@ -3,6 +3,10 @@ package com.example.firebasecurd_sample
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuItemCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.firebasecurd_sample.Adaptor.MainAdapter
 import com.example.firebasecurd_sample.databinding.ActivityMainBinding
@@ -28,6 +32,49 @@ class MainActivity : AppCompatActivity() {
         getFirebaseKeys()
         getFirebaseData(keyList)
     }
+
+    // ActionBar 적용하기
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.search_menu, menu)
+        val item = menu!!.findItem(R.id.search)
+
+        val searchView = item.actionView as SearchView
+        searchView.queryHint = "enter name"
+
+        val searchListener = object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                TODO("Not yet implemented")
+            }
+        }
+
+
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    // ActionBar에서 search를 했을 경우 새롭게 찾은 결과를 보여줄 recyclerView를 재정의하는 함수
+    fun searchName(name : String){
+        getFirebaseKeys()
+        databaseRef.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()){
+                    userList.clear()
+                    keyList.forEach {
+                        val data = snapshot.child(it)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
+
+    // 한 단계 하위 데이터의 모든 key 값을 keyList라는 리스트 변수에 저장하는 함수
     fun getFirebaseKeys(){
         databaseRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -46,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    // 하위의 모든 키를 이용하여 각 키의 값을 가져와서 recyclerView를 만드는 함수
     fun getFirebaseData(keyList : MutableList<String>){
         databaseRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
