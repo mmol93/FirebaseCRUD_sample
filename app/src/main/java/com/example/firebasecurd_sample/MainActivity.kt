@@ -56,8 +56,15 @@ class MainActivity : AppCompatActivity() {
 
         // 서치뷰에 리스너 등록
         searchView.setOnQueryTextListener(searchListener)
-        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
 
+        // 서치뷰를 닫을 시 다시 리사이클러뷰 보여주기
+        searchView.setOnCloseListener {
+            getFirebaseKeys()
+            getFirebaseData(keyList)
+
+            // true: setOnCloseListener를 완전히 재정히
+            // false: setOnCloseListener의 기본 행동은 그대로 두기
+            return@setOnCloseListener false
         }
 
         return true
